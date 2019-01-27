@@ -29,7 +29,9 @@ def createFolder(email, folder_name):
 column_type = {'s':'varchar(255)','n': 'float', 'd': 'Date', '':'varchar(255)'}
 def createTable(email, folder_name, table_name, columns, note, head):
 
-    real_name = email + '_' +  mUtil.getUUid() # 实际创建的表名
+    end = email.index('@')
+    real_name = email[0:end]
+    real_name += '_' +  mUtil.getUUid() # 实际创建的表名
 
     sql = '' # 循环拼接要插入的字段，生成sql
     for column in columns:

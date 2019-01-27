@@ -13,23 +13,23 @@ def getCaptcha(ip):
         return False
 #登录
 def login(login_name, password, ip):
+    # todo 暂时使用自动注册
+    createUser(login_name, password)
 
     token = mUtil.getUUid()
 
     conn = mysqlPool.getConn()
     cursor = conn.cursor(cursor=mysqlPool.cur)
-    print(ip,token,login_name,password)
+
     try:
 
         r = cursor.execute("update user set last_login_ip=%s, token=%s  where email=%s and psw=%s ", [ip, token, login_name, password])
 
+        conn.commit();
         if(r):
             cursor.execute("select * from user where email=%s and psw=%s ", [login_name, password])
             data = cursor.fetchone()
-
-            print("Database version : %s " % data)
             return data
-
 
     except Exception as e:
         import traceback
@@ -65,3 +65,28 @@ def findUserByToken(token):
     return user
 
 #注册
+def createUser(email, password):
+
+    conn = mysqlPool.getConn()
+    cursor = conn.cursor(cursor=mysqlPool.cur)
+
+    try:
+        # 查看用户是否存在
+        cursor.execute("select count(*) as count from user where email=%s", [email])
+        count = cursor.fetchone()
+        if( count['count']>0):
+            return False
+        # 创建用户信息
+        cursor.execute("insert into user (email,psw) values (%s,%s)", [email, password])
+        conn.commit();
+        return True
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print('事务处理失败', e)
+    finally:
+        cursor.close()
+        conn.close()
+
+    return False
